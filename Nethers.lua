@@ -1,5 +1,4 @@
-_G.FlashRunning = true
-
+-- Laced Notifier V6 (Blue-White, Hide Anim, Sorted Logs, Join Status, Self ESP)
 local HttpService = game:GetService("HttpService")
 local CoreGui = game:GetService("CoreGui")
 local TweenService = game:GetService("TweenService")
@@ -8,67 +7,58 @@ local TeleportService = game:GetService("TeleportService")
 local SoundService = game:GetService("SoundService")
 local UserInputService = game:GetService("UserInputService")
 
-local HttpService = game:GetService("HttpService")
-local CoreGui = game:GetService("CoreGui")
-local TweenService = game:GetService("TweenService")
-local Players = game:GetService("Players")
-local TeleportService = game:GetService("TeleportService")
-local SoundService = game:GetService("SoundService")
-local UserInputService = game:GetService("UserInputService")
-
-local UI_NAME = "FlashNotifier_GUI"
+local UI_NAME = "LacedNotifier_GUI"
 if CoreGui:FindFirstChild(UI_NAME) then CoreGui[UI_NAME]:Destroy() end
-if SoundService:FindFirstChild("FlashNotifSound") then SoundService.FlashNotifSound:Destroy() end
+if SoundService:FindFirstChild("LacedNotifSound") then SoundService.LacedNotifSound:Destroy() end
 
 local lp = Players.LocalPlayer
 if lp.Character then
     local h = lp.Character:FindFirstChild("Head")
-    if h and h:FindFirstChild("Flash_USER_ESP") then h.Flash_USER_ESP:Destroy() end
+    if h and h:FindFirstChild("LC_USER_ESP") then h.LC_USER_ESP:Destroy() end
 end
 
 local Gui = Instance.new("ScreenGui")
 Gui.Name = UI_NAME
 Gui.Parent = CoreGui
 Gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-Gui.ResetOnSpawn = false
 
 -- ═══════════════════════════════════
--- THEME CYBER NEON - CONTOURS EN JAUNE
+-- THEME
 -- ═══════════════════════════════════
 local T = {
-    BgDark      = Color3.fromRGB(8, 8, 12),
-    BgMid       = Color3.fromRGB(12, 12, 18),
-    BgCard      = Color3.fromRGB(15, 15, 25),
-    BgCardHover = Color3.fromRGB(22, 22, 35),
-    Sidebar     = Color3.fromRGB(6, 6, 10),
-    Accent      = Color3.fromRGB(255, 215, 0),     -- Jaune Neon principal
-    Accent2     = Color3.fromRGB(255, 240, 100),   -- Jaune clair pour gradient
-    White       = Color3.fromRGB(245, 245, 255),
-    TextDim     = Color3.fromRGB(160, 160, 190),
-    Off         = Color3.fromRGB(45, 45, 60),
-    Green       = Color3.fromRGB(0, 255, 140),
-    Red         = Color3.fromRGB(255, 70, 100),
-    HighlightC  = Color3.fromRGB(255, 100, 200),
-    MidlightC   = Color3.fromRGB(80, 220, 255),
+    BgDark      = Color3.fromRGB(8, 12, 21),
+    BgMid       = Color3.fromRGB(12, 18, 32),
+    BgCard      = Color3.fromRGB(16, 24, 42),
+    BgCardHover = Color3.fromRGB(22, 32, 56),
+    Sidebar     = Color3.fromRGB(6, 10, 18),
+    Accent1     = Color3.fromRGB(60, 130, 246),
+    Accent2     = Color3.fromRGB(99, 179, 255),
+    AccentGlow  = Color3.fromRGB(40, 100, 220),
+    White       = Color3.fromRGB(240, 245, 255),
+    TextDim     = Color3.fromRGB(120, 140, 175),
+    Off         = Color3.fromRGB(30, 36, 52),
+    Green       = Color3.fromRGB(45, 210, 110),
+    GreenDim    = Color3.fromRGB(25, 60, 40),
+    Red         = Color3.fromRGB(220, 60, 70),
+    HighlightC  = Color3.fromRGB(255, 75, 75),
+    MidlightC   = Color3.fromRGB(80, 175, 255),
 }
 
 local userSettings = {
     Midlights = true,
     Highlights = true,
     AutoJoin = false,
-    AutoJoinRetries = 1,
+    AutoJoinRetries = 3,
     PlaySound = true,
     ToggleKey = "RightShift",
     UseWhitelist = false,
-    Whitelist = {},
-    FastJoin = true,
-    AggressivePolling = true
+    Whitelist = {}
 }
 
 -- ═══════════════════════════════════
 -- AUTO SAVE CONFIG
 -- ═══════════════════════════════════
-local CONFIG_FILE = "FlashNotifier_Config.json"
+local CONFIG_FILE = "LacedNotifier_Config.json"
 
 pcall(function()
     if isfile and readfile and isfile(CONFIG_FILE) then
@@ -76,7 +66,9 @@ pcall(function()
         if type(saved) == "table" then
             for k, v in pairs(saved) do
                 if k == "Whitelist" and type(v) == "table" then
-                    for wk, wv in pairs(v) do userSettings.Whitelist[wk] = wv end
+                    for wk, wv in pairs(v) do
+                        userSettings.Whitelist[wk] = wv
+                    end
                 else
                     userSettings[k] = v
                 end
@@ -87,12 +79,14 @@ end)
 
 task.spawn(function()
     local lastSave = HttpService:JSONEncode(userSettings)
-    while _G.FlashRunning ~= false do
+    while _G.LacedRunning ~= false do
         task.wait(3)
         pcall(function()
             local current = HttpService:JSONEncode(userSettings)
-            if current ~= lastSave and writefile then
-                writefile(CONFIG_FILE, current)
+            if current ~= lastSave then
+                if writefile then
+                    writefile(CONFIG_FILE, current)
+                end
                 lastSave = current
             end
         end)
@@ -136,7 +130,7 @@ local allBrainrots = {
 }
 
 local NotifSound = Instance.new("Sound")
-NotifSound.Name = "FlashNotifSound"
+NotifSound.Name = "LacedNotifSound"
 NotifSound.SoundId = "rbxassetid://4590662766"
 NotifSound.Volume = 1
 NotifSound.Parent = SoundService
@@ -159,111 +153,162 @@ local function formatNumber(n)
 end
 
 -- ═══════════════════════════════════
--- MAIN FRAME - Contours Jaune Neon
+-- MAIN FRAME (starts off-screen for intro animation)
 -- ═══════════════════════════════════
 local Main = Instance.new("Frame")
-Main.Size = UDim2.new(0, 600, 0, 400)
-Main.Position = UDim2.new(0.5, -300, 1.5, 0)
+Main.Size = UDim2.new(0, 580, 0, 380)
+Main.Position = UDim2.new(0.5, -290, 1.5, 0)
 Main.BackgroundColor3 = T.BgDark
 Main.BorderSizePixel = 0
 Main.Active = true
 Main.Draggable = true
 Main.ClipsDescendants = true
 Main.Parent = Gui
-
-Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 16)
+Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 12)
 
 local MainStroke = Instance.new("UIStroke")
-MainStroke.Thickness = 1.8
-MainStroke.Color = T.Accent        -- Jaune Neon
-MainStroke.Transparency = 0.35
+MainStroke.Thickness = 2
+MainStroke.Color = Color3.fromRGB(255, 255, 255)
+MainStroke.Transparency = 0.1
 MainStroke.Parent = Main
 
 local BorderGrad = Instance.new("UIGradient")
 BorderGrad.Color = ColorSequence.new{
-    ColorSequenceKeypoint.new(0, T.Accent),
-    ColorSequenceKeypoint.new(0.5, T.Accent2),
-    ColorSequenceKeypoint.new(1, T.Accent)
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 100, 220)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(140, 210, 255)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 100, 220))
 }
-BorderGrad.Rotation = 45
 BorderGrad.Parent = MainStroke
 
-local OPEN_POS = UDim2.new(0.5, -300, 0.5, -200)
-local HIDE_POS = UDim2.new(0.5, -300, 1.5, 0)
+local OPEN_POS = UDim2.new(0.5, -290, 0.5, -190)
+local HIDE_POS = UDim2.new(0.5, -290, 1.5, 0)
 local guiVisible = true
 
 task.delay(0.1, function()
-    TweenService:Create(Main, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = OPEN_POS}):Play()
+    TweenService:Create(Main, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+        Position = OPEN_POS
+    }):Play()
 end)
 
+-- ═══════════════════════════════════
 -- SIDEBAR
+-- ═══════════════════════════════════
 local Sidebar = Instance.new("Frame")
-Sidebar.Size = UDim2.new(0, 160, 1, 0)
+Sidebar.Size = UDim2.new(0, 155, 1, 0)
 Sidebar.BackgroundColor3 = T.Sidebar
 Sidebar.BorderSizePixel = 0
 Sidebar.Parent = Main
-Instance.new("UICorner", Sidebar).CornerRadius = UDim.new(0, 16)
+Instance.new("UICorner", Sidebar).CornerRadius = UDim.new(0, 12)
+
+local SFix = Instance.new("Frame")
+SFix.Size = UDim2.new(0, 12, 1, 0)
+SFix.Position = UDim2.new(1, -12, 0, 0)
+SFix.BackgroundColor3 = T.Sidebar
+SFix.BorderSizePixel = 0
+SFix.Parent = Sidebar
+
+local SepLine = Instance.new("Frame")
+SepLine.Size = UDim2.new(0, 1, 1, -20)
+SepLine.Position = UDim2.new(1, 0, 0, 10)
+SepLine.BackgroundColor3 = T.Off
+SepLine.BorderSizePixel = 0
+SepLine.Parent = Sidebar
 
 local Logo = Instance.new("TextLabel")
-Logo.Size = UDim2.new(1, 0, 0, 50)
-Logo.Position = UDim2.new(0, 0, 0, 20)
+Logo.Size = UDim2.new(1, 0, 0, 45)
+Logo.Position = UDim2.new(0, 0, 0, 8)
 Logo.BackgroundTransparency = 1
-Logo.Text = "FLASH"
+Logo.Text = "LACED"
 Logo.Font = Enum.Font.GothamBlack
-Logo.TextSize = 28
-Logo.TextColor3 = T.Accent   -- Jaune
+Logo.TextSize = 24
+Logo.TextColor3 = T.Accent2
 Logo.Parent = Sidebar
 
 local LogoSub = Instance.new("TextLabel")
-LogoSub.Size = UDim2.new(1, 0, 0, 16)
-LogoSub.Position = UDim2.new(0, 0, 0, 48)
+LogoSub.Size = UDim2.new(1, 0, 0, 14)
+LogoSub.Position = UDim2.new(0, 0, 0, 42)
 LogoSub.BackgroundTransparency = 1
-LogoSub.Text = "NOTIFIER"
+LogoSub.Text = "N O T I F I E R"
 LogoSub.Font = Enum.Font.Gotham
-LogoSub.TextSize = 10
+LogoSub.TextSize = 9
 LogoSub.TextColor3 = T.TextDim
 LogoSub.Parent = Sidebar
 
 local VerBadge = Instance.new("TextLabel")
-VerBadge.Size = UDim2.new(0.6, 0, 0, 18)
-VerBadge.Position = UDim2.new(0.2, 0, 0, 70)
+VerBadge.Size = UDim2.new(0.5, 0, 0, 18)
+VerBadge.Position = UDim2.new(0.25, 0, 0, 60)
 VerBadge.BackgroundColor3 = T.BgCard
-VerBadge.Text = "v1.5 ⚡"
+VerBadge.Text = "v1"
 VerBadge.Font = Enum.Font.GothamBold
 VerBadge.TextSize = 10
-VerBadge.TextColor3 = T.Accent
+VerBadge.TextColor3 = T.Accent2
 VerBadge.Parent = Sidebar
 Instance.new("UICorner", VerBadge).CornerRadius = UDim.new(0, 8)
 
--- Close & Minimize
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Size = UDim2.new(0, 28, 0, 28)
 CloseBtn.Position = UDim2.new(1, -40, 0, 14)
 CloseBtn.BackgroundColor3 = T.BgCardHover
-CloseBtn.Text = "×"
+CloseBtn.BackgroundTransparency = 0.3
+CloseBtn.Text = "X"
 CloseBtn.Font = Enum.Font.GothamBold
-CloseBtn.TextColor3 = T.Red
-CloseBtn.TextSize = 18
+CloseBtn.TextColor3 = Color3.fromRGB(255, 90, 90)
+CloseBtn.TextSize = 12
 CloseBtn.Parent = Main
 Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 8)
+
+local CloseStroke = Instance.new("UIStroke")
+CloseStroke.Color = Color3.fromRGB(255, 90, 90)
+CloseStroke.Transparency = 0.7
+CloseStroke.Parent = CloseBtn
 
 local MinBtn = Instance.new("TextButton")
 MinBtn.Size = UDim2.new(0, 28, 0, 28)
 MinBtn.Position = UDim2.new(1, -76, 0, 14)
 MinBtn.BackgroundColor3 = T.BgCardHover
-MinBtn.Text = "−"
+MinBtn.BackgroundTransparency = 0.3
+MinBtn.Text = "-"
 MinBtn.Font = Enum.Font.GothamBold
-MinBtn.TextColor3 = T.Accent
-MinBtn.TextSize = 18
+MinBtn.TextColor3 = Color3.fromRGB(255, 190, 80)
+MinBtn.TextSize = 12
 MinBtn.Parent = Main
 Instance.new("UICorner", MinBtn).CornerRadius = UDim.new(0, 8)
 
+local MinStroke = Instance.new("UIStroke")
+MinStroke.Color = Color3.fromRGB(255, 190, 80)
+MinStroke.Transparency = 0.7
+MinStroke.Parent = MinBtn
+
+CloseBtn.MouseEnter:Connect(function()
+    TweenService:Create(CloseStroke, TweenInfo.new(0.2), {Transparency = 0}):Play()
+    TweenService:Create(CloseBtn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(200, 50, 50), TextColor3 = T.White}):Play()
+end)
+CloseBtn.MouseLeave:Connect(function()
+    TweenService:Create(CloseStroke, TweenInfo.new(0.2), {Transparency = 0.7}):Play()
+    TweenService:Create(CloseBtn, TweenInfo.new(0.2), {BackgroundColor3 = T.BgCardHover, TextColor3 = Color3.fromRGB(255, 90, 90)}):Play()
+end)
+
+MinBtn.MouseEnter:Connect(function()
+    TweenService:Create(MinStroke, TweenInfo.new(0.2), {Transparency = 0}):Play()
+    TweenService:Create(MinBtn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(200, 150, 40), TextColor3 = T.White}):Play()
+end)
+MinBtn.MouseLeave:Connect(function()
+    TweenService:Create(MinStroke, TweenInfo.new(0.2), {Transparency = 0.7}):Play()
+    TweenService:Create(MinBtn, TweenInfo.new(0.2), {BackgroundColor3 = T.BgCardHover, TextColor3 = Color3.fromRGB(255, 190, 80)}):Play()
+end)
+
 CloseBtn.MouseButton1Click:Connect(function()
-    _G.FlashRunning = false
-    TweenService:Create(Main, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Position = HIDE_POS}):Play()
-    task.delay(0.5, function()
+    _G.LacedRunning = false
+    TweenService:Create(Main, TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
+        Position = HIDE_POS
+    }):Play()
+    task.delay(0.4, function()
         Gui:Destroy()
-        if SoundService:FindFirstChild("FlashNotifSound") then SoundService.FlashNotifSound:Destroy() end
+        if SoundService:FindFirstChild("LacedNotifSound") then SoundService.LacedNotifSound:Destroy() end
+        if lp.Character then
+            local h = lp.Character:FindFirstChild("Head")
+            if h and h:FindFirstChild("LC_USER_ESP") then h.LC_USER_ESP:Destroy() end
+        end
     end)
 end)
 
@@ -271,27 +316,41 @@ local function toggleGUI()
     guiVisible = not guiVisible
     if guiVisible then
         Main.Visible = true
-        TweenService:Create(Main, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = OPEN_POS}):Play()
+        TweenService:Create(Main, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+            Position = OPEN_POS
+        }):Play()
     else
-        TweenService:Create(Main, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Position = HIDE_POS}):Play()
+        local tw = TweenService:Create(Main, TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
+            Position = HIDE_POS
+        })
+        tw:Play()
+        tw.Completed:Connect(function()
+            if not guiVisible then Main.Visible = false end
+        end)
     end
 end
 
 MinBtn.MouseButton1Click:Connect(toggleGUI)
 
--- Mobile Toggle
 local MobileToggle = Instance.new("TextButton")
-MobileToggle.Size = UDim2.new(0, 42, 0, 42)
-MobileToggle.Position = UDim2.new(0, 15, 0, 15)
+MobileToggle.Name = "MobileToggle"
+MobileToggle.Size = UDim2.new(0, 40, 0, 40)
+MobileToggle.Position = UDim2.new(0, 10, 0, 10)
 MobileToggle.BackgroundColor3 = T.BgCard
-MobileToggle.Text = "⚡"
+MobileToggle.BorderSizePixel = 0
+MobileToggle.Text = "L"
 MobileToggle.Font = Enum.Font.GothamBlack
-MobileToggle.TextSize = 22
-MobileToggle.TextColor3 = T.Accent
+MobileToggle.TextSize = 20
+MobileToggle.TextColor3 = T.Accent2
+MobileToggle.Active = true
+MobileToggle.Draggable = true
 MobileToggle.Visible = UserInputService.TouchEnabled
 MobileToggle.Parent = Gui
 Instance.new("UICorner", MobileToggle).CornerRadius = UDim.new(1, 0)
-
+local mtStroke = Instance.new("UIStroke")
+mtStroke.Thickness = 2
+mtStroke.Color = T.Accent1
+mtStroke.Parent = MobileToggle
 MobileToggle.MouseButton1Click:Connect(toggleGUI)
 
 UserInputService.InputBegan:Connect(function(input, gpe)
@@ -305,75 +364,77 @@ end)
 -- TAB SYSTEM
 -- ═══════════════════════════════════
 local LogsPage = Instance.new("Frame")
-LogsPage.Size = UDim2.new(1, -160, 1, 0)
-LogsPage.Position = UDim2.new(0, 160, 0, 0)
+LogsPage.Size = UDim2.new(1, -155, 1, -2)
+LogsPage.Position = UDim2.new(0, 155, 0, 2)
 LogsPage.BackgroundTransparency = 1
 LogsPage.Parent = Main
 
 local SettingsPage = Instance.new("Frame")
-SettingsPage.Size = UDim2.new(1, -160, 1, 0)
-SettingsPage.Position = UDim2.new(0, 160, 0, 0)
+SettingsPage.Size = UDim2.new(1, -155, 1, -2)
+SettingsPage.Position = UDim2.new(0, 155, 0, 2)
 SettingsPage.BackgroundTransparency = 1
 SettingsPage.Visible = false
 SettingsPage.Parent = Main
 
 local WhitelistPage = Instance.new("Frame")
-WhitelistPage.Size = UDim2.new(1, -160, 1, 0)
-WhitelistPage.Position = UDim2.new(0, 160, 0, 0)
+WhitelistPage.Size = UDim2.new(1, -155, 1, -2)
+WhitelistPage.Position = UDim2.new(0, 155, 0, 2)
 WhitelistPage.BackgroundTransparency = 1
 WhitelistPage.Visible = false
 WhitelistPage.Parent = Main
 
+local activeTab = "logs"
 local tabButtons = {}
 
 local function makeTabBtn(icon, text, yPos, key)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, -24, 0, 42)
-    btn.Position = UDim2.new(0, 12, 0, yPos)
+    btn.Size = UDim2.new(1, -20, 0, 36)
+    btn.Position = UDim2.new(0, 10, 0, yPos)
     btn.BackgroundColor3 = T.BgCard
-    btn.BackgroundTransparency = key == "logs" and 0.1 or 1
+    btn.BackgroundTransparency = key == "logs" and 0 or 1
     btn.BorderSizePixel = 0
     btn.Text = ""
     btn.AutoButtonColor = false
     btn.Parent = Sidebar
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 10)
-
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
+    
     local ind = Instance.new("Frame")
-    ind.Size = UDim2.new(0, 4, 0.65, 0)
-    ind.Position = UDim2.new(0, 0, 0.175, 0)
-    ind.BackgroundColor3 = T.Accent        -- Jaune Neon
+    ind.Size = UDim2.new(0, 3, 0.6, 0)
+    ind.Position = UDim2.new(0, 0, 0.2, 0)
+    ind.BackgroundColor3 = T.Accent1
     ind.BackgroundTransparency = key == "logs" and 0 or 1
     ind.Parent = btn
     Instance.new("UICorner", ind).CornerRadius = UDim.new(1, 0)
-
+    
     local lbl = Instance.new("TextLabel")
-    lbl.Size = UDim2.new(1, -30, 1, 0)
-    lbl.Position = UDim2.new(0, 25, 0, 0)
+    lbl.Size = UDim2.new(1, -15, 1, 0)
+    lbl.Position = UDim2.new(0, 15, 0, 0)
     lbl.BackgroundTransparency = 1
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
     lbl.Text = icon .. "  " .. text
     lbl.Font = Enum.Font.GothamSemibold
-    lbl.TextSize = 13.5
+    lbl.TextSize = 12
     lbl.TextColor3 = key == "logs" and T.White or T.TextDim
-    lbl.TextXAlignment = Enum.TextXAlignment.Left
     lbl.Parent = btn
-
+    
     tabButtons[key] = {btn = btn, ind = ind, lbl = lbl}
     return btn
 end
 
-local tLogs = makeTabBtn("📋", "Logs", 110, "logs")
-local tSettings = makeTabBtn("⚙️", "Settings", 165, "settings")
-local tWhitelist = makeTabBtn("🛡️", "Whitelist", 220, "whitelist")
+local tLogs = makeTabBtn("📋", "Logs", 90, "logs")
+local tSettings = makeTabBtn("⚙️", "Settings", 132, "settings")
+local tWhitelist = makeTabBtn("🛡️", "Whitelist", 174, "whitelist")
 
 local function switchTab(toKey)
+    activeTab = toKey
     LogsPage.Visible = toKey == "logs"
     SettingsPage.Visible = toKey == "settings"
     WhitelistPage.Visible = toKey == "whitelist"
-
+    
     for k, v in pairs(tabButtons) do
         local act = k == toKey
-        TweenService:Create(v.btn, TweenInfo.new(0.25, Enum.EasingStyle.Quad), {BackgroundTransparency = act and 0.1 or 1}):Play()
-        TweenService:Create(v.ind, TweenInfo.new(0.25), {BackgroundTransparency = act and 0 or 1}):Play()
+        TweenService:Create(v.btn, TweenInfo.new(0.2), {BackgroundTransparency = act and 0 or 1}):Play()
+        TweenService:Create(v.ind, TweenInfo.new(0.2), {BackgroundTransparency = act and 0 or 1}):Play()
         v.lbl.TextColor3 = act and T.White or T.TextDim
     end
 end
@@ -381,6 +442,16 @@ end
 tLogs.MouseButton1Click:Connect(function() switchTab("logs") end)
 tSettings.MouseButton1Click:Connect(function() switchTab("settings") end)
 tWhitelist.MouseButton1Click:Connect(function() switchTab("whitelist") end)
+
+local KeyHint = Instance.new("TextLabel")
+KeyHint.Size = UDim2.new(1, 0, 0, 20)
+KeyHint.Position = UDim2.new(0, 0, 1, -25)
+KeyHint.BackgroundTransparency = 1
+KeyHint.Text = userSettings.ToggleKey .. " = Toggle"
+KeyHint.Font = Enum.Font.Gotham
+KeyHint.TextSize = 9
+KeyHint.TextColor3 = T.Off
+KeyHint.Parent = Sidebar
 
 -- ═══════════════════════════════════
 -- SETTINGS PAGE
@@ -413,8 +484,8 @@ local function makeToggle(parent, text, key)
     f.Size = UDim2.new(1, 0, 0, 42)
     f.BackgroundColor3 = T.BgCard
     f.Parent = parent
-    Instance.new("UICorner", f).CornerRadius = UDim.new(0, 10)
-
+    Instance.new("UICorner", f).CornerRadius = UDim.new(0, 8)
+    
     local lbl = Instance.new("TextLabel")
     lbl.Size = UDim2.new(1, -65, 1, 0)
     lbl.Position = UDim2.new(0, 14, 0, 0)
@@ -425,27 +496,31 @@ local function makeToggle(parent, text, key)
     lbl.TextSize = 13
     lbl.TextColor3 = T.White
     lbl.Parent = f
-
+    
     local track = Instance.new("TextButton")
     track.Size = UDim2.new(0, 42, 0, 22)
     track.Position = UDim2.new(1, -56, 0.5, -11)
-    track.BackgroundColor3 = userSettings[key] and T.Accent or T.Off
+    track.BackgroundColor3 = userSettings[key] and T.Accent1 or T.Off
     track.Text = ""
     track.Parent = f
     Instance.new("UICorner", track).CornerRadius = UDim.new(1, 0)
-
+    
     local dot = Instance.new("Frame")
     dot.Size = UDim2.new(0, 16, 0, 16)
     dot.Position = userSettings[key] and UDim2.new(1, -19, 0, 3) or UDim2.new(0, 3, 0, 3)
     dot.BackgroundColor3 = T.White
     dot.Parent = track
     Instance.new("UICorner", dot).CornerRadius = UDim.new(1, 0)
-
+    
     track.MouseButton1Click:Connect(function()
         userSettings[key] = not userSettings[key]
         local on = userSettings[key]
-        TweenService:Create(dot, TweenInfo.new(0.15), {Position = on and UDim2.new(1, -19, 0, 3) or UDim2.new(0, 3, 0, 3)}):Play()
-        TweenService:Create(track, TweenInfo.new(0.15), {BackgroundColor3 = on and T.Accent or T.Off}):Play()
+        TweenService:Create(dot, TweenInfo.new(0.15, Enum.EasingStyle.Quad), {
+            Position = on and UDim2.new(1, -19, 0, 3) or UDim2.new(0, 3, 0, 3)
+        }):Play()
+        TweenService:Create(track, TweenInfo.new(0.15), {
+            BackgroundColor3 = on and T.Accent1 or T.Off
+        }):Play()
     end)
 end
 
@@ -454,8 +529,8 @@ local function makeInput(parent, text, key)
     f.Size = UDim2.new(1, 0, 0, 42)
     f.BackgroundColor3 = T.BgCard
     f.Parent = parent
-    Instance.new("UICorner", f).CornerRadius = UDim.new(0, 10)
-
+    Instance.new("UICorner", f).CornerRadius = UDim.new(0, 8)
+    
     local lbl = Instance.new("TextLabel")
     lbl.Size = UDim2.new(1, -65, 1, 0)
     lbl.Position = UDim2.new(0, 14, 0, 0)
@@ -466,7 +541,7 @@ local function makeInput(parent, text, key)
     lbl.TextSize = 13
     lbl.TextColor3 = T.White
     lbl.Parent = f
-
+    
     local box = Instance.new("TextBox")
     box.Size = UDim2.new(0, 34, 0, 26)
     box.Position = UDim2.new(1, -50, 0.5, -13)
@@ -478,7 +553,7 @@ local function makeInput(parent, text, key)
     box.ClearTextOnFocus = false
     box.Parent = f
     Instance.new("UICorner", box).CornerRadius = UDim.new(0, 5)
-
+    
     box.FocusLost:Connect(function()
         local v = tonumber(box.Text)
         if v and v > 0 then userSettings[key] = math.floor(v) else box.Text = tostring(userSettings[key]) end
@@ -490,8 +565,8 @@ local function makeKeybindSetting(parent, text)
     f.Size = UDim2.new(1, 0, 0, 42)
     f.BackgroundColor3 = T.BgCard
     f.Parent = parent
-    Instance.new("UICorner", f).CornerRadius = UDim.new(0, 10)
-
+    Instance.new("UICorner", f).CornerRadius = UDim.new(0, 8)
+    
     local lbl = Instance.new("TextLabel")
     lbl.Size = UDim2.new(1, -95, 1, 0)
     lbl.Position = UDim2.new(0, 14, 0, 0)
@@ -502,7 +577,7 @@ local function makeKeybindSetting(parent, text)
     lbl.TextSize = 13
     lbl.TextColor3 = T.White
     lbl.Parent = f
-
+    
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(0, 80, 0, 26)
     btn.Position = UDim2.new(1, -96, 0.5, -13)
@@ -510,10 +585,10 @@ local function makeKeybindSetting(parent, text)
     btn.Text = tostring(userSettings.ToggleKey)
     btn.Font = Enum.Font.GothamBold
     btn.TextSize = 11
-    btn.TextColor3 = T.White
+    btn.TextColor3 = T.Accent2
     btn.Parent = f
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 5)
-
+    
     local connection
     btn.MouseButton1Click:Connect(function()
         btn.Text = "..."
@@ -522,7 +597,9 @@ local function makeKeybindSetting(parent, text)
             if input.UserInputType == Enum.UserInputType.Keyboard then
                 userSettings.ToggleKey = input.KeyCode.Name
                 btn.Text = input.KeyCode.Name
+                KeyHint.Text = input.KeyCode.Name .. " = Toggle"
                 connection:Disconnect()
+                connection = nil
             end
         end)
     end)
@@ -536,7 +613,7 @@ local function makeHeader(text, parent)
     h.TextXAlignment = Enum.TextXAlignment.Left
     h.Font = Enum.Font.GothamBold
     h.TextSize = 11
-    h.TextColor3 = T.Accent
+    h.TextColor3 = T.Accent2
     h.Parent = parent
 end
 
@@ -545,8 +622,8 @@ local function makeActionBtn(parent, text, callback)
     f.Size = UDim2.new(1, 0, 0, 42)
     f.BackgroundColor3 = T.BgCardHover
     f.Parent = parent
-    Instance.new("UICorner", f).CornerRadius = UDim.new(0, 10)
-
+    Instance.new("UICorner", f).CornerRadius = UDim.new(0, 8)
+    
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(1, 0, 1, 0)
     btn.BackgroundTransparency = 1
@@ -555,7 +632,7 @@ local function makeActionBtn(parent, text, callback)
     btn.TextSize = 13
     btn.TextColor3 = T.White
     btn.Parent = f
-
+    
     btn.MouseButton1Click:Connect(function()
         callback(btn)
     end)
@@ -563,25 +640,31 @@ end
 
 makeHeader("── UI SETTINGS", SScroll)
 makeKeybindSetting(SScroll, "Toggle GUI Keybind")
+do local s = Instance.new("Frame", SScroll) s.Size = UDim2.new(1,0,0,4) s.BackgroundTransparency = 1 end
 makeHeader("── FILTERS", SScroll)
 makeToggle(SScroll, "Receive Midlights", "Midlights")
 makeToggle(SScroll, "Receive Highlights", "Highlights")
+do local s = Instance.new("Frame", SScroll) s.Size = UDim2.new(1,0,0,4) s.BackgroundTransparency = 1 end
 makeHeader("── NOTIFICATIONS", SScroll)
 makeToggle(SScroll, "Play Sound on New Log", "PlaySound")
+do local s = Instance.new("Frame", SScroll) s.Size = UDim2.new(1,0,0,4) s.BackgroundTransparency = 1 end
 makeHeader("── JOIN SETTINGS", SScroll)
 makeInput(SScroll, "Join Spam Retries", "AutoJoinRetries")
-makeToggle(SScroll, "⚡ Fast Join Mode", "FastJoin")
-makeToggle(SScroll, "⚡ Aggressive Polling", "AggressivePolling")
+do local s = Instance.new("Frame", SScroll) s.Size = UDim2.new(1,0,0,4) s.BackgroundTransparency = 1 end
 makeHeader("── DATA", SScroll)
 makeActionBtn(SScroll, "Save All Settings", function(btn)
     local originalText = btn.Text
     btn.Text = "Saving..."
     pcall(function()
-        if writefile then writefile(CONFIG_FILE, HttpService:JSONEncode(userSettings)) end
+        if writefile then
+            writefile(CONFIG_FILE, HttpService:JSONEncode(userSettings))
+        end
     end)
-    task.delay(0.8, function()
-        btn.Text = "Saved ✓"
-        task.delay(1.2, function() btn.Text = originalText end)
+    task.delay(0.5, function()
+        btn.Text = "Saved!"
+        task.delay(1, function()
+            btn.Text = originalText
+        end)
     end)
 end)
 
@@ -598,7 +681,7 @@ ajPanel.Size = UDim2.new(1, -95, 0, 36)
 ajPanel.Position = UDim2.new(0, 15, 0, 10)
 ajPanel.BackgroundColor3 = T.BgCard
 ajPanel.Parent = TopBar
-Instance.new("UICorner", ajPanel).CornerRadius = UDim.new(0, 10)
+Instance.new("UICorner", ajPanel).CornerRadius = UDim.new(0, 8)
 
 local ajStroke = Instance.new("UIStroke")
 ajStroke.Color = T.Off
@@ -637,7 +720,7 @@ ajStatus.Parent = ajPanel
 local ajTrack = Instance.new("TextButton")
 ajTrack.Size = UDim2.new(0, 42, 0, 22)
 ajTrack.Position = UDim2.new(1, -56, 0.5, -11)
-ajTrack.BackgroundColor3 = userSettings.AutoJoin and T.Accent or T.Off
+ajTrack.BackgroundColor3 = userSettings.AutoJoin and T.Accent1 or T.Off
 ajTrack.Text = ""
 ajTrack.Parent = ajPanel
 Instance.new("UICorner", ajTrack).CornerRadius = UDim.new(1, 0)
@@ -650,10 +733,12 @@ ajDot.Parent = ajTrack
 Instance.new("UICorner", ajDot).CornerRadius = UDim.new(1, 0)
 
 local function updateAJVisuals(on)
-    TweenService:Create(ajDot, TweenInfo.new(0.15), {Position = on and UDim2.new(1, -19, 0, 3) or UDim2.new(0, 3, 0, 3)}):Play()
-    TweenService:Create(ajTrack, TweenInfo.new(0.15), {BackgroundColor3 = on and T.Accent or T.Off}):Play()
+    TweenService:Create(ajDot, TweenInfo.new(0.15, Enum.EasingStyle.Quad), {
+        Position = on and UDim2.new(1, -19, 0, 3) or UDim2.new(0, 3, 0, 3)
+    }):Play()
+    TweenService:Create(ajTrack, TweenInfo.new(0.15), {BackgroundColor3 = on and T.Accent1 or T.Off}):Play()
     TweenService:Create(ajPulse, TweenInfo.new(0.2), {BackgroundColor3 = on and T.Green or T.Off}):Play()
-    TweenService:Create(ajStroke, TweenInfo.new(0.2), {Color = on and T.Accent or T.Off}):Play()
+    TweenService:Create(ajStroke, TweenInfo.new(0.2), {Color = on and T.Accent1 or T.Off}):Play()
     ajStatus.Text = on and "Waiting for logs..." or ""
     ajStatus.TextColor3 = T.TextDim
 end
@@ -700,7 +785,7 @@ wlPanel.Size = UDim2.new(1, -95, 0, 36)
 wlPanel.Position = UDim2.new(0, 15, 0, 10)
 wlPanel.BackgroundColor3 = T.BgCard
 wlPanel.Parent = WLTop
-Instance.new("UICorner", wlPanel).CornerRadius = UDim.new(0, 10)
+Instance.new("UICorner", wlPanel).CornerRadius = UDim.new(0, 8)
 
 local wlStroke = Instance.new("UIStroke")
 wlStroke.Color = T.Off
@@ -721,7 +806,7 @@ wlLbl.Parent = wlPanel
 local wlTrack = Instance.new("TextButton")
 wlTrack.Size = UDim2.new(0, 32, 0, 18)
 wlTrack.Position = UDim2.new(0, 106, 0.5, -9)
-wlTrack.BackgroundColor3 = userSettings.UseWhitelist and T.Accent or T.Off
+wlTrack.BackgroundColor3 = userSettings.UseWhitelist and T.Accent1 or T.Off
 wlTrack.Text = ""
 wlTrack.Parent = wlPanel
 Instance.new("UICorner", wlTrack).CornerRadius = UDim.new(1, 0)
@@ -736,30 +821,32 @@ Instance.new("UICorner", wlDot).CornerRadius = UDim.new(1, 0)
 wlTrack.MouseButton1Click:Connect(function()
     userSettings.UseWhitelist = not userSettings.UseWhitelist
     local on = userSettings.UseWhitelist
-    TweenService:Create(wlDot, TweenInfo.new(0.15), {Position = on and UDim2.new(1, -15, 0, 3) or UDim2.new(0, 3, 0, 3)}):Play()
-    TweenService:Create(wlTrack, TweenInfo.new(0.15), {BackgroundColor3 = on and T.Accent or T.Off}):Play()
-    TweenService:Create(wlStroke, TweenInfo.new(0.2), {Color = on and T.Accent or T.Off}):Play()
+    TweenService:Create(wlDot, TweenInfo.new(0.15, Enum.EasingStyle.Quad), {
+        Position = on and UDim2.new(1, -15, 0, 3) or UDim2.new(0, 3, 0, 3)
+    }):Play()
+    TweenService:Create(wlTrack, TweenInfo.new(0.15), {BackgroundColor3 = on and T.Accent1 or T.Off}):Play()
+    TweenService:Create(wlStroke, TweenInfo.new(0.2), {Color = on and T.Accent1 or T.Off}):Play()
 end)
 
 local WLAll = Instance.new("TextButton")
 WLAll.Size = UDim2.new(0, 30, 0, 20)
 WLAll.Position = UDim2.new(0, 146, 0.5, -10)
-WLAll.BackgroundColor3 = T.Green
+WLAll.BackgroundColor3 = T.GreenDim
 WLAll.Text = "All"
 WLAll.Font = Enum.Font.GothamBold
 WLAll.TextSize = 10
-WLAll.TextColor3 = T.White
+WLAll.TextColor3 = T.Green
 WLAll.Parent = wlPanel
 Instance.new("UICorner", WLAll).CornerRadius = UDim.new(0, 4)
 
 local WLNone = Instance.new("TextButton")
 WLNone.Size = UDim2.new(0, 40, 0, 20)
 WLNone.Position = UDim2.new(0, 180, 0.5, -10)
-WLNone.BackgroundColor3 = T.Red
+WLNone.BackgroundColor3 = Color3.fromRGB(60, 25, 25)
 WLNone.Text = "None"
 WLNone.Font = Enum.Font.GothamBold
 WLNone.TextSize = 10
-WLNone.TextColor3 = T.White
+WLNone.TextColor3 = T.HighlightC
 WLNone.Parent = wlPanel
 Instance.new("UICorner", WLNone).CornerRadius = UDim.new(0, 4)
 
@@ -804,7 +891,7 @@ local function createWLEntry(name)
     local f = Instance.new("Frame")
     f.Size = UDim2.new(1, 0, 0, 34)
     f.BackgroundColor3 = T.BgCard
-    Instance.new("UICorner", f).CornerRadius = UDim.new(0, 8)
+    Instance.new("UICorner", f).CornerRadius = UDim.new(0, 6)
     
     local lbl = Instance.new("TextLabel")
     lbl.Size = UDim2.new(1, -60, 1, 0)
@@ -820,7 +907,7 @@ local function createWLEntry(name)
     local track = Instance.new("TextButton")
     track.Size = UDim2.new(0, 32, 0, 18)
     track.Position = UDim2.new(1, -44, 0.5, -9)
-    track.BackgroundColor3 = userSettings.Whitelist[name] and T.Accent or T.Off
+    track.BackgroundColor3 = userSettings.Whitelist[name] and T.Accent1 or T.Off
     track.Text = ""
     track.Parent = f
     Instance.new("UICorner", track).CornerRadius = UDim.new(1, 0)
@@ -835,10 +922,10 @@ local function createWLEntry(name)
     local function setVisuals(on, anim)
         if anim then
             TweenService:Create(dot, TweenInfo.new(0.15), {Position = on and UDim2.new(1, -15, 0, 3) or UDim2.new(0, 3, 0, 3)}):Play()
-            TweenService:Create(track, TweenInfo.new(0.15), {BackgroundColor3 = on and T.Accent or T.Off}):Play()
+            TweenService:Create(track, TweenInfo.new(0.15), {BackgroundColor3 = on and T.Accent1 or T.Off}):Play()
         else
             dot.Position = on and UDim2.new(1, -15, 0, 3) or UDim2.new(0, 3, 0, 3)
-            track.BackgroundColor3 = on and T.Accent or T.Off
+            track.BackgroundColor3 = on and T.Accent1 or T.Off
         end
     end
     
@@ -896,23 +983,21 @@ local function performJoinSpam(jobId)
     task.spawn(function()
         local dots = {"Joining.", "Joining..", "Joining..."}
         local i = 1
-        while currentlyJoining and _G.FlashRunning do
+        while currentlyJoining and _G.LacedRunning do
             ajStatus.Text = dots[i]
             i = i % 3 + 1
-            task.wait(0.3)
+            task.wait(0.4)
         end
     end)
     
     task.spawn(function()
-        local attempts = tonumber(userSettings.AutoJoinRetries) or 1
-        local delayTime = userSettings.FastJoin and 0.5 or 1
-        
+        local attempts = tonumber(userSettings.AutoJoinRetries) or 3
         for i = 1, attempts do
-            if not _G.FlashRunning then break end
+            if not _G.LacedRunning then break end
             pcall(function()
                 TeleportService:TeleportToPlaceInstance(game.PlaceId, jobId, lp)
             end)
-            task.wait(delayTime)
+            task.wait(3)
         end
         currentlyJoining = false
         if userSettings.AutoJoin then
@@ -933,14 +1018,20 @@ local activeLogs = {}
 
 local function addLogEntry(data)
     local isHL = data.tier == "Highlights"
-    local order = isHL and (-200000 - hlCount) or (-100000 - mlCount)
-    if isHL then hlCount = hlCount + 1 else mlCount = mlCount + 1 end
+    local order
+    if isHL then
+        hlCount = hlCount + 1
+        order = -200000 - hlCount
+    else
+        mlCount = mlCount + 1
+        order = -100000 - mlCount
+    end
     
     local card = Instance.new("Frame")
     card.Size = UDim2.new(1, 0, 0, 52)
     card.BackgroundColor3 = T.BgCard
     card.LayoutOrder = order
-    Instance.new("UICorner", card).CornerRadius = UDim.new(0, 10)
+    Instance.new("UICorner", card).CornerRadius = UDim.new(0, 8)
     
     local tierBar = Instance.new("Frame")
     tierBar.Size = UDim2.new(0, 3, 0.65, 0)
@@ -951,9 +1042,9 @@ local function addLogEntry(data)
 
     if isHL then
         local hlGlow = Instance.new("UIStroke")
-        hlGlow.Thickness = 1.2
+        hlGlow.Thickness = 1
         hlGlow.Color = T.HighlightC
-        hlGlow.Transparency = 0.5
+        hlGlow.Transparency = 0.6
         hlGlow.Parent = card
     end
 
@@ -966,7 +1057,7 @@ local function addLogEntry(data)
     nameL.Text = data.name or "Unknown"
     nameL.Font = Enum.Font.GothamBold
     nameL.TextSize = 13
-    nameL.TextColor3 = isHL and Color3.fromRGB(255, 180, 200) or T.White
+    nameL.TextColor3 = isHL and Color3.fromRGB(255, 200, 200) or T.White
     nameL.Parent = card
     
     local valL = Instance.new("TextLabel")
@@ -974,7 +1065,9 @@ local function addLogEntry(data)
     valL.Position = UDim2.new(0, 12, 0, 28)
     valL.BackgroundTransparency = 1
     valL.TextXAlignment = Enum.TextXAlignment.Left
-    valL.Text = formatNumber(data.value or 0) .. "  ·  " .. (data.tier or "") .. "  •  0s ago"
+    
+    local baseStr = formatNumber(data.value or 0) .. "  ·  " .. (data.tier or "")
+    valL.Text = baseStr .. "  •  0s ago"
     valL.Font = Enum.Font.Gotham
     valL.TextSize = 11
     valL.TextColor3 = isHL and T.HighlightC or T.MidlightC
@@ -982,7 +1075,7 @@ local function addLogEntry(data)
     
     table.insert(activeLogs, {
         label = valL,
-        baseStr = formatNumber(data.value or 0) .. "  ·  " .. (data.tier or ""),
+        baseStr = baseStr,
         ts = data.timestamp or math.floor(os.time())
     })
     
@@ -995,8 +1088,8 @@ local function addLogEntry(data)
     jBtn.TextSize = 10
     jBtn.TextColor3 = T.White
     jBtn.Parent = card
-    Instance.new("UICorner", jBtn).CornerRadius = UDim.new(0, 6)
-
+    Instance.new("UICorner", jBtn).CornerRadius = UDim.new(0, 5)
+    
     local sBtn = Instance.new("TextButton")
     sBtn.Size = UDim2.new(0, 48, 0, 26)
     sBtn.Position = UDim2.new(1, -58, 0.5, -13)
@@ -1006,13 +1099,21 @@ local function addLogEntry(data)
     sBtn.TextSize = 10
     sBtn.TextColor3 = T.White
     sBtn.Parent = card
-    Instance.new("UICorner", sBtn).CornerRadius = UDim.new(0, 6)
+    Instance.new("UICorner", sBtn).CornerRadius = UDim.new(0, 5)
 
     card.Parent = Content
-
+    
     jBtn.MouseButton1Click:Connect(function()
         if data.job_id then
-            pcall(function() TeleportService:TeleportToPlaceInstance(game.PlaceId, data.job_id, lp) end)
+            pcall(function()
+                TeleportService:TeleportToPlaceInstance(game.PlaceId, data.job_id, lp)
+            end)
+            jBtn.Text = "..."
+            jBtn.BackgroundColor3 = T.Accent1
+            task.delay(1.5, function()
+                jBtn.Text = "JOIN"
+                jBtn.BackgroundColor3 = T.Green
+            end)
         end
     end)
     
@@ -1026,14 +1127,15 @@ end
 -- ═══════════════════════════════════
 local NC = Instance.new("Frame")
 NC.Name = "NotifContainer"
-NC.Size = UDim2.new(0, 340, 0, 400)
-NC.Position = UDim2.new(0.5, -170, 0, 20)
+NC.Size = UDim2.new(0, 260, 1, -40)
+NC.Position = UDim2.new(1, -280, 0, 20)
 NC.BackgroundTransparency = 1
 NC.Parent = Gui
 
 local NLayout = Instance.new("UIListLayout")
 NLayout.Parent = NC
 NLayout.SortOrder = Enum.SortOrder.LayoutOrder
+NLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
 NLayout.Padding = UDim.new(0, 8)
 
 local function pushNotification(data)
@@ -1043,21 +1145,22 @@ local function pushNotification(data)
     local f = Instance.new("TextButton")
     f.Size = UDim2.new(1, 0, 0, 52)
     f.BackgroundColor3 = T.BgMid
-    f.BackgroundTransparency = 0.1
+    f.BackgroundTransparency = 1
     f.Text = ""
     f.AutoButtonColor = false
-    Instance.new("UICorner", f).CornerRadius = UDim.new(0, 10)
+    Instance.new("UICorner", f).CornerRadius = UDim.new(0, 8)
     
     local nStroke = Instance.new("UIStroke")
     nStroke.Thickness = 1
     nStroke.Color = isHL and T.HighlightC or T.MidlightC
-    nStroke.Transparency = 0.6
+    nStroke.Transparency = 1
     nStroke.Parent = f
-
+    
     local bar = Instance.new("Frame")
     bar.Size = UDim2.new(0, 3, 0.65, 0)
     bar.Position = UDim2.new(0, 6, 0.175, 0)
     bar.BackgroundColor3 = isHL and T.HighlightC or T.MidlightC
+    bar.BackgroundTransparency = 1
     bar.Parent = f
     Instance.new("UICorner", bar).CornerRadius = UDim.new(1, 0)
 
@@ -1066,45 +1169,77 @@ local function pushNotification(data)
     t.Position = UDim2.new(0, 16, 0, 8)
     t.BackgroundTransparency = 1
     t.TextXAlignment = Enum.TextXAlignment.Left
+    t.TextTruncate = Enum.TextTruncate.AtEnd
     t.Text = data.name or "Unknown"
     t.Font = Enum.Font.GothamBold
     t.TextSize = 12
     t.TextColor3 = T.White
+    t.TextTransparency = 1
     t.Parent = f
-
+    t.ZIndex = 2
+    
     local v = Instance.new("TextLabel")
     v.Size = UDim2.new(1, -85, 0, 14)
     v.Position = UDim2.new(0, 16, 0, 27)
     v.BackgroundTransparency = 1
     v.TextXAlignment = Enum.TextXAlignment.Left
-    v.Text = formatNumber(data.value or 0) .. "  ·  " .. (data.tier or "") .. "  •  now"
+    
+    local now = math.floor(os.time())
+    local diff = math.max(0, now - (data.timestamp or now))
+    local tStr = diff < 60 and (diff.."s ago") or (math.floor(diff/60).."m ago")
+    
+    v.Text = formatNumber(data.value or 0) .. "  ·  " .. (data.tier or "") .. "  •  " .. tStr
     v.Font = Enum.Font.Gotham
     v.TextSize = 10
     v.TextColor3 = T.TextDim
+    v.TextTransparency = 1
     v.Parent = f
-
+    v.ZIndex = 2
+    
     local jn = Instance.new("TextButton")
     jn.Size = UDim2.new(0, 44, 0, 22)
     jn.Position = UDim2.new(1, -54, 0.5, -11)
-    jn.BackgroundColor3 = T.Accent
+    jn.BackgroundColor3 = T.Accent1
+    jn.BackgroundTransparency = 1
     jn.Text = "JOIN"
     jn.Font = Enum.Font.GothamBold
     jn.TextSize = 10
-    jn.TextColor3 = T.White
+    jn.TextColor3 = T.Accent2
+    jn.TextTransparency = 1
+    jn.AutoButtonColor = false
     jn.Parent = f
-    Instance.new("UICorner", jn).CornerRadius = UDim.new(0, 6)
+    jn.ZIndex = 2
+    Instance.new("UICorner", jn).CornerRadius = UDim.new(0, 5)
 
     f.Parent = NC
-
-    f.MouseButton1Click:Connect(function()
-        if data.job_id then pcall(function() TeleportService:TeleportToPlaceInstance(game.PlaceId, data.job_id, lp) end) end
-    end)
-
-    TweenService:Create(f, TweenInfo.new(0.2), {BackgroundTransparency = 0.05}):Play()
-
-    task.delay(4, function()
+    
+    local function doJoin()
+        if data.job_id then 
+            pcall(function()
+                TeleportService:TeleportToPlaceInstance(game.PlaceId, data.job_id, lp)
+            end)
+            jn.Text = "..."
+        end
+    end
+    
+    f.MouseButton1Click:Connect(doJoin)
+    jn.MouseButton1Click:Connect(doJoin)
+    
+    TweenService:Create(f, TweenInfo.new(0.35, Enum.EasingStyle.Quad), {BackgroundTransparency = 0.05}):Play()
+    TweenService:Create(nStroke, TweenInfo.new(0.35), {Transparency = 0.6}):Play()
+    TweenService:Create(bar, TweenInfo.new(0.35), {BackgroundTransparency = 0}):Play()
+    TweenService:Create(t, TweenInfo.new(0.35), {TextTransparency = 0}):Play()
+    TweenService:Create(v, TweenInfo.new(0.35), {TextTransparency = 0}):Play()
+    TweenService:Create(jn, TweenInfo.new(0.35), {TextTransparency = 0, BackgroundTransparency = 0.15}):Play()
+    
+    task.delay(4.5, function()
         if f and f.Parent then
-            local fo = TweenService:Create(f, TweenInfo.new(0.2), {BackgroundTransparency = 1})
+            TweenService:Create(f, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
+            TweenService:Create(nStroke, TweenInfo.new(0.3), {Transparency = 1}):Play()
+            TweenService:Create(bar, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
+            TweenService:Create(t, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+            TweenService:Create(v, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+            local fo = TweenService:Create(jn, TweenInfo.new(0.3), {TextTransparency = 1, BackgroundTransparency = 1})
             fo:Play()
             fo.Completed:Connect(function() f:Destroy() end)
         end
@@ -1112,18 +1247,18 @@ local function pushNotification(data)
 end
 
 -- ═══════════════════════════════════
--- SELF ESP
+-- SELF ESP — "LC USER" BADGE
 -- ═══════════════════════════════════
-local espStrokes = {}
+espStrokes = espStrokes or {}
 
 local function createSelfESP(char)
     task.spawn(function()
         local head = char:WaitForChild("Head", 10)
         if not head then return end
-        if head:FindFirstChild("Flash_USER_ESP") then head.Flash_USER_ESP:Destroy() end
+        if head:FindFirstChild("LC_USER_ESP") then head.LC_USER_ESP:Destroy() end
         
         local bg = Instance.new("BillboardGui")
-        bg.Name = "Flash_USER_ESP"
+        bg.Name = "LC_USER_ESP"
         bg.Size = UDim2.new(0, 130, 0, 30)
         bg.StudsOffset = Vector3.new(0, 2.8, 0)
         bg.AlwaysOnTop = true
@@ -1138,14 +1273,14 @@ local function createSelfESP(char)
         
         local bStroke = Instance.new("UIStroke")
         bStroke.Thickness = 1.5
-        bStroke.Color = T.Accent        -- Jaune Neon
+        bStroke.Color = T.Accent1
         bStroke.Parent = badge
         table.insert(espStrokes, bStroke)
         
         local txt = Instance.new("TextLabel")
         txt.Size = UDim2.new(1, 0, 1, 0)
         txt.BackgroundTransparency = 1
-        txt.Text = "FLASH USER"
+        txt.Text = "LC USER"
         txt.Font = Enum.Font.GothamBlack
         txt.TextSize = 13
         txt.TextColor3 = T.White
@@ -1157,9 +1292,9 @@ if lp.Character then createSelfESP(lp.Character) end
 lp.CharacterAdded:Connect(createSelfESP)
 
 -- ═══════════════════════════════════
--- SYNC FLASH USERS
+-- SYNC LC USERS (Updated URL)
 -- ═══════════════════════════════════
-local function SyncFlashUsers()
+local function SyncLCUsers()
     local url = "https://api.npoint.io/12643e6a6f4acb837a3e"
     local myId = tostring(lp.UserId)
     
@@ -1170,53 +1305,78 @@ local function SyncFlashUsers()
         else return {Body = game:HttpGet(opts.Url, true)} end
     end
 
-    while _G.FlashRunning ~= false do
+    print("[LC ESP] Sync Thread Starting...")
+
+    while _G.LacedRunning ~= false do
         pcall(function()
             local res = req({Url = url, Method = "GET"})
             if not res or not res.Body then return end
-            local data = HttpService:JSONDecode(res.Body) or {}
-            data.users = data.users or {}
-
+            
+            local data = HttpService:JSONDecode(res.Body)
+            if type(data) ~= "table" then data = {} end
+            if type(data.users) ~= "table" then data.users = {} end
+            
+            local changed = false
             if not data.users[myId] then
+                print("[LC ESP] Adding my ID:", myId)
                 data.users[myId] = true
-                req({
+                changed = true
+            end
+            
+            if changed then
+                local bodyStr = HttpService:JSONEncode(data)
+                print("[LC ESP] Uploading...")
+                
+                local pReq = req({
                     Url = url,
                     Method = "POST",
                     Headers = {["Content-Type"] = "application/json"},
-                    Body = HttpService:JSONEncode(data)
+                    Body = bodyStr
                 })
+                
+                if pReq then print("[LC ESP] Upload Status:", pReq.StatusCode or "OK") end
             end
-
+            
             for _, p in ipairs(Players:GetPlayers()) do
                 if p ~= lp and data.users[tostring(p.UserId)] then
-                    if p.Character and not p.Character:FindFirstChild("Flash_USER_ESP", true) then
+                    if p.Character and not p.Character:FindFirstChild("LC_USER_ESP", true) then
                         createSelfESP(p.Character)
+                        print("[LC ESP] Created ESP for:", p.Name)
                     end
                 end
             end
         end)
+        
         task.wait(10)
     end
 end
-task.spawn(SyncFlashUsers)
+task.spawn(SyncLCUsers)
 
 -- ═══════════════════════════════════
--- CHROMA LOOP (avec jaune)
+-- CHROMA LOOP
 -- ═══════════════════════════════════
-_G.FlashRunning = true
+_G.LacedRunning = true
 
 task.spawn(function()
-    while _G.FlashRunning do
+    while _G.LacedRunning do
         local tk = tick()
         local phase = (math.sin(tk * 0.8) + 1) / 2
-        local brightness = 200 + math.floor(phase * 55)
-        local color = Color3.fromRGB(brightness, brightness, brightness)
+        local r = math.floor(40 + phase * 100)
+        local g = math.floor(100 + phase * 120)
+        local b = math.floor(200 + phase * 55)
+        local color = Color3.fromRGB(r, g, b)
         
         BorderGrad.Rotation = (tk * 60) % 360
+        BorderGrad.Color = ColorSequence.new{
+            ColorSequenceKeypoint.new(0, color),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(200, 230, 255)),
+            ColorSequenceKeypoint.new(1, color)
+        }
+        
         Logo.TextColor3 = color
         
         for k, v in pairs(tabButtons) do
-            if k == "logs" then v.ind.BackgroundColor3 = color end
+            if k == activeTab then v.ind.BackgroundColor3 = color end
         end
         
         for _, strk in ipairs(espStrokes) do
@@ -1224,38 +1384,19 @@ task.spawn(function()
         end
         
         if userSettings.AutoJoin then ajPulse.BackgroundColor3 = color end
+        if MobileToggle and MobileToggle:FindFirstChild("UIStroke") then
+            MobileToggle.TextColor3 = color
+            MobileToggle.UIStroke.Color = color
+        end
         
         task.wait(0.04)
     end
 end)
 
 -- ═══════════════════════════════════
--- DISCORD WEBHOOK + DATA FETCHING
+-- DATA FETCHING
 -- ═══════════════════════════════════
-local DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1500292571404963878/nmr7_fxP1ur-yvof4Mu-RJC2YU9J_ZYDaxj-rkTcZMVvTD5pfCX5He9OVhqubeV_lGsR"
-
-local function sendToDiscord(d)
-    local payload = HttpService:JSONEncode({
-        ["embeds"] = {{
-            ["title"] = "⚡ " .. (d.name or "Brainrot") .. " detected",
-            ["color"] = d.tier == "Highlights" and 16777215 or 12632256,
-            ["fields"] = {
-                {["name"] = "Value", ["value"] = formatNumber(d.value), ["inline"] = true},
-                {["name"] = "Tier", ["value"] = d.tier or "N/A", ["inline"] = true}
-            },
-            ["footer"] = {["text"] = "Go to #●𝗕𝘂𝘆💵"},
-            ["timestamp"] = os.date("!%Y-%m-%dT%H:%M:%SZ")
-        }}
-    })
-    
-    task.spawn(function()
-        local rf = syn and syn.request or request or http_request
-        if rf then 
-            rf({Url = DISCORD_WEBHOOK_URL, Method = "POST", Headers = {["Content-Type"] = "application/json"}, Body = payload}) 
-        end
-    end)
-end
-
+local URL = "https://apy-q8fo.onrender.com/add"
 local seenIds = {}
 local isFirstRun = true
 
@@ -1267,16 +1408,15 @@ local function handleData(findings)
             table.insert(newFindings, d)
         end
     end
+    table.sort(newFindings, function(a, b) return a.id < b.id end)
     
     if isFirstRun then
         isFirstRun = false
         return
     end
-
+    
     for _, d in ipairs(newFindings) do
         addLogEntry(d)
-        sendToDiscord(d)
-        
         if userSettings[d.tier] then
             pushNotification(d)
             if userSettings.AutoJoin and d.job_id then
@@ -1286,6 +1426,7 @@ local function handleData(findings)
                         passesWhitelist = false
                     end
                 end
+                
                 if passesWhitelist then
                     performJoinSpam(d.job_id)
                 end
@@ -1293,30 +1434,44 @@ local function handleData(findings)
         end
     end
 end
--- ═══════════════════════════════════
-local MY_API_URL = "https://apy-q8fo.onrender.com"
-local seenIds = {}
 
 task.spawn(function()
-    while _G.FlashRunning do
+    while _G.LacedRunning do
         pcall(function()
-            local response = game:HttpGet(MY_API_URL .. "/recent", true)
-            local res = HttpService:JSONDecode(response)
-            
-            if res and res.ok and res.findings then
-                for _, pet in ipairs(res.findings) do
-                    if not seenIds[pet.id] then
-                        seenIds[pet.id] = true
-                        addLogEntry(pet)
-                        if userSettings[pet.tier] then
-                            pushNotification(pet)
-                        end
-                    end
-                end
+            local reqUrl = URL .. "?t=" .. tostring(tick())
+            local headers = {["Cache-Control"]="no-cache",["User-Agent"]="Roblox/LacedUI"}
+            local response
+            if syn and syn.request then
+                response = syn.request({Url=reqUrl,Method="GET",Headers=headers})
+            elseif request then
+                response = request({Url=reqUrl,Method="GET",Headers=headers})
+            elseif http_request then
+                response = http_request({Url=reqUrl,Method="GET",Headers=headers})
+            else
+                response = {Body = game:HttpGet(reqUrl, true)}
+            end
+            if response and response.Body then
+                local res = HttpService:JSONDecode(response.Body)
+                if res and res.ok and res.findings then handleData(res.findings) end
             end
         end)
-        task.wait(1)
+        task.wait(1.5)
     end
 end)
 
-print("✅ Flash Notifier + API chargé !")
+task.spawn(function()
+    while _G.LacedRunning do
+        local now = math.floor(os.time())
+        for i = #activeLogs, 1, -1 do
+            local ld = activeLogs[i]
+            if not ld.label or not ld.label.Parent then
+                table.remove(activeLogs, i)
+            else
+                local diff = math.max(0, now - ld.ts)
+                local tStr = diff < 60 and (diff.."s ago") or (diff < 3600 and math.floor(diff/60).."m ago" or math.floor(diff/3600).."h ago")
+                ld.label.Text = ld.baseStr .. "  •  " .. tStr
+            end
+        end
+        task.wait(1)
+    end
+end)
